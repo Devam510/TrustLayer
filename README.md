@@ -1,181 +1,62 @@
 # TrustLayer (Project Guardian)
 
-**Core Principle**: No fund custody. Only verification + automated execution.
+**The Trust Infrastructure Layer for Freelancers and Clients.**
 
-## 1. High-Level Components
+Traditional escrow relies on static trust—holding money, charging high fees (10-20%), and mediating disputes manually. TrustLayer replaces escrow with dynamic trust: **continuous verification, automated execution, and instant enforcement without ever taking custody of funds.**
 
-### Frontend
-- Freelancer Dashboard (React)
-- Client Dashboard (React)
-- **Displays**: Project status, Verified balance, Milestones, Alerts
-
-### Backend API Layer
-- Node.js / Python (FastAPI)
-- **Handles**: Auth (OAuth 2.0), Project logic, Webhooks (GitHub, Figma), Bank API communication
-
-### Banking Integration Layer
-- Plaid / TrueLayer APIs
-- **Functions**: Account linking, Balance fetch, Payment initiation (where supported)
-
-### Monitoring Engine (Core Logic)
-- Runs continuously (cron + event-driven)
-- **Checks**: Account balance ≥ project budget, Milestone triggers
-- **Sends**: Stop-work alerts, Payment execution calls
-
-### Database
-- PostgreSQL
-- **Stores**: Users, Projects, Milestones, Bank tokens (encrypted), Event logs
-
-### Event System
-- Webhooks + Queue (Kafka / RabbitMQ)
-- **Sources**: GitHub (PR merged), Figma (file update)
-- Drives milestone completion
-
-### Notification Service
-- Email + SMS + in-app
-- **Critical for**: Low balance alerts, Payment confirmations, Stop-work signals
-
-## 2. Data Flow (Step-by-Step)
-- **Step 1: Client Onboarding**
-  - Client signs up
-  - Connects bank via Plaid/TrueLayer
-  - OAuth token stored (encrypted AES-256)
-- **Step 2: Project Creation**
-  - Client defines: Budget, Milestones
-  - Freelancer accepts
-- **Step 3: Fund Verification**
-  - System checks bank balance via API
-  - If balance ≥ budget → project activated
-  - Else → blocked
-- **Step 4: Continuous Monitoring**
-  - Background job runs: Every few minutes or via webhook
-  - If balance drops: → Trigger Stop Work Alert
-- **Step 5: Milestone Trigger**
-  - Example: GitHub PR merged, Figma file updated
-  - Webhook → Backend → Verify condition
-- **Step 6: Payment Execution**
-  - If milestone valid: Trigger payment API, Direct bank → freelancer transfer
-- **Step 7: Logging + Audit**
-  - Every action stored: Balance checks, Alerts, Payments
-
-## 3. Core APIs
-
-### Bank API
-- `/link_account`
-- `/get_balance`
-- `/initiate_payment`
-
-### Internal API
-- `/create_project`
-- `/verify_funds`
-- `/trigger_milestone`
-- `/send_alert`
-
-### Webhook Endpoints
-- `/webhook/github`
-- `/webhook/figma`
-
-## 4. Security Layer
-- AES-256 encryption (tokens, sensitive data)
-- OAuth 2.0 for bank access
-- Zero storage of raw bank credentials
-- Role-based access (client vs freelancer)
-- Audit logs immutable
-
-## 5. Failure Handling
-- Bank API down → retry queue
-- Payment failure → rollback + alert
-- False milestone → manual override option
-- Balance fluctuation → threshold buffer (e.g., 10%)
-
-## 6. Minimal MVP Stack
-- **Frontend**: React + Tailwind
-- **Backend**: Node.js (Express)
-- **DB**: PostgreSQL
-- **Queue**: Redis (BullMQ)
-- **Bank API**: Plaid (start)
-- **Hosting**: AWS / Vercel
-
-## 7. Architecture Summary (Mental Model)
-- You are not a wallet
-- You are a real-time trust validator
-- Replace escrow with: 
-  - continuous verification
-  - automated execution
-  - instant enforcement
-
-## 8. YC-Level Insight
-
-**Escrow = static trust (hold money)**
-**TrustLayer = dynamic trust (verify continuously)**
-
-This distinction is the core pitch.
+Positioning: *Stripe for trust, not payments.*
 
 ---
 
-## Differentiation: How to win against competition
+## 1. Why We Win (The Moat)
 
-Competition is guaranteed. Differentiation is structural, not cosmetic.
+Competition in the payment space is guaranteed. We differentiate structurally through deep integration and execution control.
 
-### 1. Change the Category (Not “Better Escrow”)
-- **Current framing**: payment tool
-- **Correct framing**: trust infrastructure layer
+- **Deep Enforcement, Not Just Alerts**: We don't just monitor balances; we enforce conditions. If client funds drop or a milestone fails, TrustLayer instantly triggers auto "stop-work" signals—downgrading Figma access, revoking GitHub collaborator permissions, or rotating client API keys.
+- **Workflow System of Record**: TrustLayer operates where work happens. Via our GitHub App, Figma Plugin, and Slack Bot, all milestones are routed through us, making our infrastructure a required dependency, not an optional add-on.
+- **Geographic & Compliance Advantage**: While Western startups focus on smooth US/EU rails, we solve hard cross-border friction first (India, SEA, MENA) utilizing UPI and informal contracts. We are compliant-first (PSD2, SCA, RBI guidelines), turning regulation into a barrier to entry for latecomers.
+- **AI-Driven Verification Layer**: Instead of manual milestone approvals or blind triggers, TrustLayer runs heuristic and AI checks on code quality (meaningful PRs vs. dummy commits) and design completeness to prevent fraudulent triggers.
+- **The Trust Score Graph**: Over time, verifiable milestone and fund data compounds into a reputation graph—a true reliability score for both clients and freelancers that enables future risk pricing.
 
-Escrow companies: Hold money, Charge fees, Resolve disputes.
-TrustLayer: Don’t hold money, Don’t mediate, Enforce conditions automatically.
-**Position**: “Stripe for trust, not payments.”
+---
 
-### 2. Own the Hard Layer: Enforcement
-Most competitors will stop at Bank verification and Simple milestone triggers.
-You differentiate by enforcement depth:
-- Auto “stop work” signals integrated into tools
-- GitHub access control (auto revoke collaborator)
-- Figma access downgrade
-- API keys disabled for client deliverables
-**Result**: not just alerts → actual execution control
+## 2. Core Architecture
 
-### 3. Become System of Record
-Competitors sit on top (optional tool).
-You become a required layer in workflow. 
-**Execution**: GitHub App, Figma Plugin, Slack bot. All milestones routed through you → you control truth.
+### High-Level Components
+- **Frontend**: Freelancer & Client Dashboards (React, Tailwind) for project status, verified balances, and alerts.
+- **Backend API Layer**: Node.js / Python (FastAPI) handling core logic, OAuth 2.0, Webhooks, and Bank API routing.
+- **Banking Integration Layer**: Plaid / TrueLayer APIs for instant account linking and continuous zero-custody balance verification.
+- **Monitoring Engine**: Event-driven cron jobs checking account balance thresholds and executing stop-work alerts or payment API calls.
+- **Event System**: Kafka / Redis (BullMQ) processing webhooks (GitHub PR merges, Figma updates) to drive milestone progression.
+- **Database**: PostgreSQL storing encrypted bank tokens (AES-256), project data, and immutable audit logs.
 
-### 4. Build a Trust Score Graph
-Not just transactions → reputation infrastructure.
-- Client reliability score (based on balance behavior)
-- Freelancer delivery score (based on milestone integrity)
-Over time a marketplace emerges and risk pricing becomes possible. Competitors won’t have data depth early.
+### Security Posture
+- AES-256 encryption for all sensitive tokens.
+- OAuth 2.0 strictly used for bank read/write access—**zero storage of raw bank credentials**.
+- Immutable audit logs for every balance check, alert, and payment.
 
-### 5. Geographic Advantage (India Edge)
-Western startups focus US/EU and ignore fragmented markets.
-You solve cross-border with India, SEA, MENA first. Handle UPI rails, currency friction, informal contracts. This is harder → defensible.
+---
 
-### 6. Compliance Moat
-Most builders avoid PSD2, SCA, RBI guidelines.
-You lean into it early: Become compliant-first infra. Others get blocked later, regulation becomes a barrier.
+## 3. Data Flow
 
-### 7. Pricing Innovation
-Escrow charges a % fee (10–20%).
-You charge a Subscription (₹ or $ monthly) or per-project flat fee.
-**Signal**: You are infra, not marketplace.
+1. **Client Onboarding & Project Creation**: Client connects bank securely via Plaid/TrueLayer. Budget and milestones are defined.
+2. **Fund Verification (Activation)**: System verifies real-time bank balance via API. Project activates only if Balance ≥ Budget.
+3. **Continuous Monitoring**: The Monitoring Engine continuously checks balance health. If the balance drops below the budget buffered threshold (e.g., 10%), a **Stop Work Alert** is triggered and tool access is suspended.
+4. **Milestone Trigger**: Work happens (e.g., GitHub PR merged, Figma file approved). A webhook hits the backend to verify the condition.
+5. **Automated Payment Execution**: Once the milestone is validated, TrustLayer initiates a direct bank-to-freelancer transfer API call.
 
-### 8. AI Verification Layer
-Competitors use manual or basic triggers.
-You use AI to validate: Code quality (PR meaningful, not dummy), Design completeness, Deliverable authenticity. Prevents fake milestone triggering.
+---
 
-### 9. Speed as Weapon
-Most will overbuild. You ship MVP in 2–3 weeks:
-- Bank link
-- Balance check
-- Single milestone trigger (GitHub)
-Get users early → data moat begins.
+## 4. API & Extensibility
 
-### 10. Core Reality
-If someone else builds the same thing:
-- Distribution wins
-- Integration depth wins
-- Data wins
-- Speed wins
+### Core APIs
+- `/link_account`, `/get_balance`, `/initiate_payment`
+- `/create_project`, `/verify_funds`, `/trigger_milestone`, `/send_alert`
 
-**Final Differentiation Axis**
-Not: “Who thought of it first”
-But: Who becomes the default layer freelancers rely on before starting any project. That position compounds.
+### Webhook Integrations
+- `/webhook/github`: Validates PR state, diff size, and AI code review.
+- `/webhook/figma`: Validates design iterations and access control.
+
+---
+
+**Execution Factor**: TrustLayer's goal is to become the default layer freelancers rely on before writing a single line of code or designing a single pixel.
