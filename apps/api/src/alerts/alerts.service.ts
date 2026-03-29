@@ -19,6 +19,14 @@ export class AlertsService {
     })
   }
 
+  async listRecentAlerts(orgId: string) {
+    return this.db.query.alerts.findMany({
+      where: eq(alerts.orgId, orgId),
+      orderBy: (a: any, { desc }: any) => [desc(a.createdAt)],
+      limit: 20,
+    })
+  }
+
   async acknowledge(alertId: string, userId: string) {
     await this.db
       .update(alerts)

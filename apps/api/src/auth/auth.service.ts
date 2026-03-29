@@ -12,7 +12,6 @@ import { sign } from 'jsonwebtoken'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { DATABASE_TOKEN } from '../database/database.module'
-import type { Database } from '../database/database.module'
 import {
   users,
   organizations,
@@ -26,8 +25,8 @@ export class AuthService {
   private readonly privateKey: string
 
   constructor(
-    @Inject(DATABASE_TOKEN) private readonly db: Database,
-    private readonly config: ConfigService,
+    @Inject(DATABASE_TOKEN) private readonly db: any,
+    config: ConfigService,
   ) {
     // Load RS256 private key for JWT signing
     const rawKey = config.get<string>('JWT_PRIVATE_KEY')

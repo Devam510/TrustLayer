@@ -14,19 +14,19 @@ export class PublicController {
   ) {}
 
   @Get('projects')
-  async listProjects(@Req() req) {
+  async listProjects(@Req() req: any) {
     const orgId = req.orgId; // Injected by ApiKeyGuard via token metadata
-    return this.projectsService.listProjects(orgId);
+    return this.projectsService.findAll(orgId);
   }
 
   @Get('projects/:id')
-  async getProject(@Req() req, @Param('id') projectId: string) {
+  async getProject(@Req() req: any, @Param('id') projectId: string) {
     const orgId = req.orgId;
-    return this.projectsService.getProject(orgId, projectId);
+    return this.projectsService.findOne(projectId, orgId);
   }
 
   @Get('alerts')
-  async listAlerts(@Req() req) {
+  async listAlerts(@Req() req: any) {
     const orgId = req.orgId;
     // Assuming alertsService has a read all method for the org
     return this.alertsService.listRecentAlerts(orgId); // Stubbed method usage

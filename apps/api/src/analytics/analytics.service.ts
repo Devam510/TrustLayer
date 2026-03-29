@@ -4,7 +4,7 @@ import { PostHog } from 'posthog-node';
 
 @Injectable()
 export class AnalyticsService implements OnModuleInit, OnModuleDestroy {
-  private posthog: PostHog;
+  private posthog!: PostHog;
   private readonly logger = new Logger(AnalyticsService.name);
 
   constructor(private configService: ConfigService) {}

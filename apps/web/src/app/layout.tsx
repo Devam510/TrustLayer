@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'TrustLayer — Know You'll Get Paid',
+    default: `TrustLayer — Know You'll Get Paid`,
     template: '%s | TrustLayer',
   },
   description:

@@ -1,15 +1,14 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Injectable, Logger } from '@nestjs/common';
-import { QUEUE_ALERT_DELIVERY } from '../monitoring/queue.constants';
+import { QUEUE_ALERT_EMAIL } from '../monitoring/queue.constants';
 import { EmailService } from '../email/email.service';
-import { Inject } from '@nestjs/common';
 import { db } from '@trustlayer/db';
 import { eq } from 'drizzle-orm';
-import { projects, alerts } from '@trustlayer/db/schema';
+import { projects } from '@trustlayer/db';
 
 @Injectable()
-@Processor(QUEUE_ALERT_DELIVERY.EMAIL)
+@Processor(QUEUE_ALERT_EMAIL)
 export class AlertDeliveryProcessor extends WorkerHost {
   private readonly logger = new Logger(AlertDeliveryProcessor.name);
 
@@ -22,7 +21,7 @@ export class AlertDeliveryProcessor extends WorkerHost {
   async process(job: Job<any>) {
     this.logger.log(`Processing email alert delivery for alert ID: ${job.data.alertId}`);
 
-    const { alertId, projectId, message } = job.data;
+    const { projectId } = job.data;
     
     // Fallback log to Sentry could be managed via global interceptors or manual try-catch 
     // when throwing an error, BullMQ handles retries.
@@ -39,7 +38,7 @@ export class AlertDeliveryProcessor extends WorkerHost {
     // In a real scenario, look up the email of the subscriber or freelancer
     const mockTo = 'freelancer@example.com';
 
-    await this.emailService.sendTrustAlert(mockTo, project.name, 'Acme Corp', 0, 0);
+    await this.emailService.sendTrustAlert(mockTo, project.title, 'Acme Corp', 0, 0);
 
     return { delivered: true };
   }

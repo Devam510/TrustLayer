@@ -20,9 +20,17 @@ async function bootstrap() {
     }),
   )
 
-  // CORS — allow Next.js frontend
+  // CORS — allow Next.js frontend (supports port 3000 and 3001 for local dev)
+  const allowedOrigins = (process.env.WEB_URL ?? 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim())
+  // In local dev, also allow port 3001 (Next.js fallback when 3000 is taken)
+  if (process.env.NODE_ENV !== 'production') {
+    if (!allowedOrigins.includes('http://localhost:3001')) allowedOrigins.push('http://localhost:3001')
+    if (!allowedOrigins.includes('http://localhost:3000')) allowedOrigins.push('http://localhost:3000')
+  }
   app.enableCors({
-    origin: process.env.WEB_URL ?? 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   })
 

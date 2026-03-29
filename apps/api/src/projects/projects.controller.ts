@@ -7,8 +7,11 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+import { Public } from '../auth/public.decorator'
 import { ProjectsService } from './projects.service'
 import { CreateProjectDto, UpdateProjectDto } from './projects.dto'
 import { CurrentUser } from '../auth/current-user.decorator'
@@ -20,7 +23,15 @@ import type { JwtPayload } from '../auth/jwt.strategy'
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @Public()
+  @Get('validate-invite')
+  @ApiOperation({ summary: 'Validate an invite token (public — no auth required)' })
+  validateInvite(@Query('token') token: string) {
+    return this.projectsService.validateInviteToken(token)
+  }
+
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new project (generates invite token)' })
   create(@CurrentUser() user: JwtPayload, @Body() dto: CreateProjectDto) {
     return this.projectsService.create(user.orgId, user.sub, dto)

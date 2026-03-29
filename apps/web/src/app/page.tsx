@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'TrustLayer — Know You'll Get Paid',
+  title: "TrustLayer — Know You'll Get Paid",
   description:
     'Real-time payment visibility for freelancers. Verify your client has the funds before you start work.',
 }

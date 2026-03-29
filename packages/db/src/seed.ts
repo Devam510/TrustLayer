@@ -1,4 +1,10 @@
+import * as dotenv from 'dotenv'
 import postgres from 'postgres'
+
+// Mirror drizzle.config.ts: load root .env if DATABASE_URL not already in env
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: '../../.env' })
+}
 
 /**
  * DB seed / init script — run once after migrations.
@@ -16,18 +22,23 @@ async function seed() {
 
   try {
     // 1. pg_partman extension + parent setup for balance_checks
-    await sql`CREATE EXTENSION IF NOT EXISTS pg_partman`
-    await sql`
-      SELECT partman.create_parent(
-        p_parent_table := 'public.balance_checks',
-        p_control := 'checked_at',
-        p_type := 'range',
-        p_interval := 'monthly',
-        p_retention := '90 days',
-        p_retention_keep_table := false
-      )
-    `
-    console.warn('[seed] pg_partman configured for balance_checks')
+    // pg_partman is only available on managed Postgres (Supabase/Neon) — skip gracefully on local dev
+    try {
+      await sql`CREATE EXTENSION IF NOT EXISTS pg_partman`
+      await sql`
+        SELECT partman.create_parent(
+          p_parent_table := 'public.balance_checks',
+          p_control := 'checked_at',
+          p_type := 'range',
+          p_interval := 'monthly',
+          p_retention := '90 days',
+          p_retention_keep_table := false
+        )
+      `
+      console.warn('[seed] pg_partman configured for balance_checks')
+    } catch (partmanErr: any) {
+      console.warn('[seed] pg_partman not available (local dev) — skipping partitioning setup:', partmanErr?.message)
+    }
 
     // 2. Audit logs immutability trigger
     await sql`

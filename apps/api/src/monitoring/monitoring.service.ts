@@ -5,6 +5,7 @@ import { DATABASE_TOKEN } from '../database/database.module'
 import { projects, balanceChecks, alerts } from '@trustlayer/db'
 import { MetricsService } from '../metrics/metrics.service'
 import type { BalanceCheckJobData } from './queue.constants'
+import { fromEvent, Observable } from 'rxjs'
 
 export interface TrustStatusEvent {
   projectId: string
@@ -80,8 +81,8 @@ export class MonitoringService {
     }
   }
 
-  async streamForProject(projectId: string) {
-    return this.events.on(`trust.${projectId}`)
+  streamForProject(projectId: string): Observable<any> {
+    return fromEvent(this.events, `trust.${projectId}`)
   }
 
   private async getRecentChecks(projectId: string, limit: number) {

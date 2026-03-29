@@ -1,7 +1,10 @@
 import { defineConfig } from 'drizzle-kit'
 import * as dotenv from 'dotenv'
 
-dotenv.config({ path: '../../.env' })
+// Only load .env file if DATABASE_URL is not already set by the shell
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: '../../.env' })
+}
 
 export default defineConfig({
   schema: './src/schema/index.ts',

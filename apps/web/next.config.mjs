@@ -25,7 +25,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://app.posthog.com https://ingest.sentry.io",
+              "connect-src 'self' http://localhost:4000 https://app.posthog.com https://ingest.sentry.io",
             ].join('; '),
           },
         ],

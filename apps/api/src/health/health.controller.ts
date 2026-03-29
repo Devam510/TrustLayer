@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { Response } from 'express'
 import { sql } from 'drizzle-orm'
-import { createClient } from 'ioredis'
+import Redis from 'ioredis'
 import { Public } from '../auth/public.decorator'
 import { DATABASE_TOKEN } from '../database/database.module'
 
@@ -66,7 +66,7 @@ export class HealthController {
 
   private async checkRedis(): Promise<HealthStatus> {
     const redisUrl = this.config.get<string>('REDIS_URL') ?? 'redis://localhost:6379'
-    const client = createClient(redisUrl)
+    const client = new Redis(redisUrl)
     try {
       await client.ping()
       return 'ok'

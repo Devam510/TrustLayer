@@ -5,11 +5,9 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "paths": {
-      "@trustlayer/db": ["../../packages/db/src/index.ts"],
-      "@trustlayer/crypto": ["../../packages/crypto/src/index.ts"]
-    }
+
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["src/**/*"]
 }
