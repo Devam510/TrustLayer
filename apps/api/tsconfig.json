@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@trustlayer/db": ["../../packages/db/src/index.ts"],
+      "@trustlayer/crypto": ["../../packages/crypto/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}

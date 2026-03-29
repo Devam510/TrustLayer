@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* TrustLayer design tokens */
+  --color-primary: 220 91% 56%;
+  --color-primary-foreground: 0 0% 100%;
+  --color-success: 142 76% 36%;
+  --color-warning: 38 92% 50%;
+  --color-danger: 0 72% 51%;
+  --color-muted: 215 20% 65%;
+  --radius: 0.625rem;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+  background: #0a0f1e;
+  color: #e2e8f0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Trust indicator status colors */
+.trust-safe {
+  color: hsl(142 76% 46%);
+}
+.trust-at-risk {
+  color: hsl(38 92% 50%);
+}
+.trust-stopped {
+  color: hsl(0 72% 51%);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+}

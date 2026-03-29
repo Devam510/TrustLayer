@@ -1,0 +1,38 @@
+name: PR Checks
+on:
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Code format (Prettier)
+        run: pnpm run format:check
+
+      - name: Linting
+        run: pnpm run lint
+
+      - name: Type Check
+        run: pnpm run type-check
+
+      - name: Unit Tests
+        run: pnpm test
+
+      - name: NPM Audit
+        run: pnpm audit --prod
