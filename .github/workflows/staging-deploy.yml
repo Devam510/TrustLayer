@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: '9'
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -29,8 +29,9 @@ jobs:
 
       - name: Deploy to Railway (API)
         uses: bervProject/railway-deploy@main
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_STAGING_TOKEN }}
         with:
-          railway_token: ${{ secrets.RAILWAY_STAGING_TOKEN }}
           service: "trustlayer-api-staging"
 
       - name: Deploy to Vercel (Web)
@@ -39,4 +40,3 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          scope: ${{ secrets.VERCEL_ORG_ID }}
