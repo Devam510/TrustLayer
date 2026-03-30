@@ -8,3 +8,8 @@ dist
 !.env.example
 coverage
 .DS_Store
+
+# Certificates and sensitive keys
+*.pem
+*.key
+certs/
