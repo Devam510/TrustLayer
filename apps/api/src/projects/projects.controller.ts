@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
@@ -16,12 +17,16 @@ import { ProjectsService } from './projects.service'
 import { CreateProjectDto, UpdateProjectDto } from './projects.dto'
 import { CurrentUser } from '../auth/current-user.decorator'
 import type { JwtPayload } from '../auth/jwt.strategy'
+import { EscrowService } from '../payment/escrow.service'
 
 @ApiTags('projects')
 @ApiBearerAuth()
 @Controller('projects')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly escrowService: EscrowService,
+  ) {}
 
   @Public()
   @Get('validate-invite')
@@ -78,5 +83,43 @@ export class ProjectsController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.projectsService.acceptInvite(token, user.sub)
+  }
+
+  // ─── Milestone Escrow Endpoints ───────────────────────────────
+
+  @Post(':id/milestones/:index/fund')
+  @ApiOperation({
+    summary: 'Client: Create Razorpay order to fund a milestone (returns order ID for checkout)',
+  })
+  fundMilestone(
+    @Param('id') id: string,
+    @Param('index', ParseIntPipe) index: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.escrowService.fundMilestone(id, index, user.sub)
+  }
+
+  @Post(':id/milestones/:index/release')
+  @ApiOperation({
+    summary: 'Client: Approve milestone and release escrowed funds to freelancer',
+  })
+  releaseMilestone(
+    @Param('id') id: string,
+    @Param('index', ParseIntPipe) index: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.escrowService.releaseMilestone(id, index, user.sub)
+  }
+
+  @Post(':id/milestones/:index/refund')
+  @ApiOperation({
+    summary: 'Client: Refund a funded milestone (only before release)',
+  })
+  refundMilestone(
+    @Param('id') id: string,
+    @Param('index', ParseIntPipe) index: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.escrowService.refundMilestone(id, index, user.sub)
   }
 }

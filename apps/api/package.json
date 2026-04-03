@@ -44,6 +44,7 @@
     "postgres": "^3.4.8",
     "posthog-node": "^5.28.8",
     "prom-client": "^15.1.3",
+    "razorpay": "^2.9.6",
     "reflect-metadata": "^0.2.2",
     "resend": "^4.2.0",
     "rxjs": "^7.8.2",

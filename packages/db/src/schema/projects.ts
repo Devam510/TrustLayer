@@ -10,7 +10,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import { organizations } from './organizations'
 import { users } from './users'
-import { bankAccounts } from './bank-accounts'
 
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -22,9 +21,10 @@ export const projects = pgTable('projects', {
   title: varchar('title').notNull(),
   description: text('description'),
   budget: decimal('budget', { precision: 12, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 3 }).default('USD').notNull(),
-  countryCode: varchar('country_code', { length: 2 }).default('US').notNull(),
-  bankAccountId: uuid('bank_account_id').references(() => bankAccounts.id),
+  currency: varchar('currency', { length: 3 }).default('INR').notNull(),
+  countryCode: varchar('country_code', { length: 2 }).default('IN').notNull(),
+  // Total funds actually escrowed via Razorpay — cached for fast trust indicator reads
+  totalEscrowed: decimal('total_escrowed', { precision: 12, scale: 2 }).default('0').notNull(),
   status: varchar('status')
     .default('draft')
     .notNull()

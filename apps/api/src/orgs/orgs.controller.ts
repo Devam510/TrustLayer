@@ -23,11 +23,8 @@ export class OrgsController {
   }
 
   @Delete('me')
-  @ApiOperation({ summary: 'Soft-delete org (cancels Stripe subscription)' })
-  deleteOrg(
-    @CurrentUser() user: JwtPayload,
-    @Query('returnUrl') returnUrl: string,
-  ) {
-    return this.orgsService.softDeleteOrg(user.orgId, returnUrl)
+  @ApiOperation({ summary: 'Soft-delete org (cancels Razorpay subscription)' })
+  deleteOrg(@CurrentUser() user: JwtPayload) {
+    return this.orgsService.softDeleteOrg(user.orgId)
   }
 }

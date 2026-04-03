@@ -1,0 +1,8 @@
+﻿src/monitoring/monitoring.gateway.ts(22,13): error TS2352: Conversion of type '{ projectId: string; status: "safe"; balance: number; budget: number; confidence: string; fundStability: string; checkedAt: string; }' to type 'TrustStatusEvent' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ projectId: string; status: "safe"; balance: number; budget: number; confidence: string; fundStability: string; checkedAt: string; }' is missing the following properties from type 'TrustStatusEvent': totalBudget, totalEscrowed, totalReleased, fundedMilestones, and 2 more.
+src/monitoring/monitoring.scheduler.ts(4,10): error TS2724: '"./queue.constants"' has no exported member named 'QUEUE_BALANCE_CHECK_CRITICAL'. Did you mean 'QUEUE_ESCROW_CHECK_CRITICAL'?
+src/monitoring/monitoring.scheduler.ts(4,40): error TS2724: '"./queue.constants"' has no exported member named 'QUEUE_BALANCE_CHECK_STANDARD'. Did you mean 'QUEUE_ESCROW_CHECK_STANDARD'?
+src/monitoring/monitoring.scheduler.ts(4,70): error TS2305: Module '"./queue.constants"' has no exported member 'QUEUE_BALANCE_CHECK_FREE'.
+undefined
+D:\Devam\Microsoft VS Code\Codes\TrustLayer\apps\api:
+ΓÇëERR_PNPM_RECURSIVE_EXEC_FIRST_FAILΓÇë Command failed with exit code 2: tsc --noEmit

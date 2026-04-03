@@ -11,12 +11,13 @@ export const subscriptions = pgTable('subscriptions', {
   orgId: uuid('org_id')
     .notNull()
     .references(() => organizations.id),
-  stripeCustomerId: varchar('stripe_customer_id').unique(),
-  stripeSubId: varchar('stripe_sub_id').unique(),
+  razorpayCustomerId: varchar('razorpay_customer_id').unique(),
+  razorpaySubId: varchar('razorpay_sub_id').unique(),
   plan: varchar('plan').default('free').notNull(),
   status: varchar('status')
     .notNull()
-    .$type<'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired'>(),
+    .default('active')
+    .$type<'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'halted' | 'paused'>(),
   trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
   currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
 })

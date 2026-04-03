@@ -2,13 +2,13 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { DATABASE_TOKEN } from '../database/database.module'
 import { organizations, orgMembers } from '@trustlayer/db'
-import { BillingService } from '../billing/billing.service'
+import { SubscriptionService } from '../payment/subscription.service'
 
 @Injectable()
 export class OrgsService {
   constructor(
     @Inject(DATABASE_TOKEN) private readonly db: any,
-    private readonly billing: BillingService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   async getOrg(orgId: string) {
@@ -29,11 +29,11 @@ export class OrgsService {
   /**
    * Soft-delete org — cancels Stripe subscription at period end before setting deleted_at.
    */
-  async softDeleteOrg(orgId: string, returnUrl: string) {
+  async softDeleteOrg(orgId: string) {
     try {
-      await this.billing.createPortalSession(orgId, returnUrl)
+      await this.subscriptionService.cancelSubscription(orgId)
     } catch {
-      // Stripe customer may not exist yet (free plan)
+      // Ignore if no subscription exists
     }
 
     await this.db

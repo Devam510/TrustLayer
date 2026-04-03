@@ -10,10 +10,8 @@ import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './auth/auth.module'
 import { HealthModule } from './health/health.module'
 import { MetricsModule } from './metrics/metrics.module'
-import { BillingModule } from './billing/billing.module'
-import { OrgsModule } from './orgs/orgs.module'
+import { PaymentModule } from './payment/payment.module'
 import { ProjectsModule } from './projects/projects.module'
-import { BankingModule } from './banking/banking.module'
 import { MonitoringModule } from './monitoring/monitoring.module'
 import { AlertsModule } from './alerts/alerts.module'
 import { ApiKeysModule } from './api-keys/api-keys.module'
@@ -60,10 +58,8 @@ import { ComplianceModule } from './compliance/compliance.module'
     AuthModule,
     HealthModule,
     MetricsModule,
-    BillingModule,
-    OrgsModule,
+    PaymentModule,
     ProjectsModule,
-    BankingModule,
     MonitoringModule,
     AlertsModule,
     ApiKeysModule,

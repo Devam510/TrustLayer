@@ -8,6 +8,13 @@
       "when": 1774786771897,
       "tag": "0000_wonderful_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775230336133,
+      "tag": "0001_white_smasher",
+      "breakpoints": true
     }
   ]
 }

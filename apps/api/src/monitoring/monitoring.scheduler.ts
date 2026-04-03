@@ -1,16 +1,16 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { QUEUE_BALANCE_CHECK_CRITICAL, QUEUE_BALANCE_CHECK_STANDARD, QUEUE_BALANCE_CHECK_FREE } from './queue.constants';
+import { QUEUE_ESCROW_CHECK_CRITICAL, QUEUE_ESCROW_CHECK_STANDARD, QUEUE_ESCROW_CHECK_FREE } from './queue.constants';
 
 @Injectable()
 export class MonitoringScheduler implements OnApplicationBootstrap {
   private readonly logger = new Logger(MonitoringScheduler.name);
 
   constructor(
-    @InjectQueue(QUEUE_BALANCE_CHECK_CRITICAL) private readonly criticalQueue: Queue,
-    @InjectQueue(QUEUE_BALANCE_CHECK_STANDARD) private readonly standardQueue: Queue,
-    @InjectQueue(QUEUE_BALANCE_CHECK_FREE) private readonly freeQueue: Queue,
+    @InjectQueue(QUEUE_ESCROW_CHECK_CRITICAL) private readonly criticalQueue: Queue,
+    @InjectQueue(QUEUE_ESCROW_CHECK_STANDARD) private readonly standardQueue: Queue,
+    @InjectQueue(QUEUE_ESCROW_CHECK_FREE) private readonly freeQueue: Queue,
   ) {}
 
   async onApplicationBootstrap() {
