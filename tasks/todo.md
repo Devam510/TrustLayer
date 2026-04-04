@@ -1,31 +1,25 @@
-# Production Payment & Escrow Implementation
+# Phase G: Razorpay Checkout Integration
 
 **Problem statement**: 
-TrustLayer currently implements basic platform subscription billing and Plaid bank linking, but completely lacks the B2B/B2C payment routing infrastructure required for a real production platform. We need a system to hold client funds securely and conditionally trigger payouts to developers (escrow) when milestones are approved.
+The backend has been completely wired up to process Razorpay Route transfers, but the frontend currently lacks any mechanism to actually trigger the `checkout.js` modal for Clients to supply their credit cards or UPI details to fund a milestone. We need a secure, dynamic bridge to initialize payment sessions on the frontend.
 
-1. **Schema Expansion**
-   - Add `stripe_connect_id` and `onboarding_complete` to the `users` table for freelancers.
-   - Create an `escrow_transactions` tracking table linking a `project_id`, `amount`, and `status`.
-   - *Expected Output*: Drizzle schema migration applied successfully.
-   - *Verification method*: Running Drizzle Studio to inspect new database structures.
+1. **[x] Native Script Loader Hook**
+   - Write a React hook `useRazorpay.ts` that dynamically appends the Razorpay `checkout.js` script tag to the DOM.
+   - *Expected Output*: A hook exposing `isLoaded` boolean that safely loads the library without Next.js SSR crashes.
+   - *Verification method*: Checking if `window.Razorpay` becomes available on mount.
 
-2. **Stripe Connect Integration (Developer Payouts)**
-   - Implement `Stripe Connect` inside the NestJS `billing.service.ts` to allow developers to create Express payout accounts.
-   - Add an endpoint to generate Connect onboarding session URLs.
-   - *Expected Output*: A working `/billing/connect` endpoint that redirects developers to Stripe.
-   - *Verification method*: Onboard a test developer and verify they appear in the Stripe Dashboard.
+2. **[x] Milestone UI Scaffold (`/dashboard/projects/[id]`)**
+   - Create a clean detailed Project View following the 60/30/10 Light Theme.
+   - Display project info and mapping over milestones.
+   - *Expected Output*: A visual list of milestones with "Fund in Escrow" buttons.
+   - *Verification method*: Navigating to a mock project ID in the dashboard.
 
-3. **Client Funding (Inbound)**
-   - Implement Stripe PaymentIntents to capture funds from the Client (using attached bank accounts or cards) placing them into the TrustLayer platform balance.
-   - *Expected Output*: An endpoint that freezes/commits milestone funds.
-   - *Verification method*: Test Stripe card captures showing up as "Uncaptured" or securely held in the Stripe balances dashboard.
-
-4. **Milestone Escrow Release**
-   - Build a `PATCH /projects/:id/milestones/:index/release` endpoint.
-   - Execute a `Stripe Transfer` from TrustLayer's platform balance to the developer's connected Stripe account.
-   - *Expected Output*: Funds successfully transferring to the developer's connected wallet upon client approval.
-   - *Verification method*: Verify webhook triggers and successful transfers in the Stripe Dashboard logs.
+3. **[x] Checkout Initialization Logic**
+   - Bind the "Fund" button to call the API's `/fund` endpoint, fetching the generated Razorpay `order_id` and options payload from NestJS.
+   - Pass the `order_id` to `window.Razorpay(options).open()`.
+   - *Expected Output*: The Razorpay iFrame modal appears prompting the user for payment.
+   - *Verification method*: Attempting to click the trigger button in dev mode connecting to test keys.
 
 **Risk / uncertainty flags**:
-- **Plaid vs Stripe**: Plaid handles the bank login, but processing raw ACH pulls often requires Stripe's native ACH/Financial Connections integration or a processor like Dwolla. We will utilize Stripe as the processor.
-- **Compliance Restrictions**: Using Stripe Connect requires setting up Terms of Service and understanding who retains chargeback liability. We will default to standard Connect Express flows.
+- `window.Razorpay` TypeScript definitions might be missing, requiring a custom `global.d.ts` declaration.
+- Webhook timing: the Razorpay window closing might race the backend webhook processing `order.paid` events. We must handle optimistic UI updates carefully.

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { BullModule } from '@nestjs/bullmq'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { LoggerModule } from 'nestjs-pino'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -52,6 +53,17 @@ import { ComplianceModule } from './compliance/compliance.module'
 
     // Event emitter for SSE broadcasting
     EventEmitterModule.forRoot(),
+
+    // Redis queue driver
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          url: config.get<string>('REDIS_URL') || 'redis://localhost:6379',
+        },
+      }),
+    }),
 
     // Feature modules
     DatabaseModule,

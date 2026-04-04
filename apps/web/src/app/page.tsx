@@ -4,75 +4,104 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: "TrustLayer — Know You'll Get Paid",
   description:
-    'Real-time payment visibility for freelancers. Verify your client has the funds before you start work.',
+    'Real-time payment visibility and escrow for freelancers. Verify your client has the funds before you start work.',
 }
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #0a0f1e 0%, #0d1635 50%, #0a0f1e 100%)' }}>
-      
-      {/* Hero */}
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 text-sm text-blue-400 mb-8">
-          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-          Real-time fund verification
-        </div>
-
-        <h1 className="text-6xl font-bold text-white mb-6 leading-tight">
-          Know You'll Get Paid
-          <span className="block text-transparent bg-clip-text"
-            style={{ backgroundImage: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
-            Before You Start Work
-          </span>
-        </h1>
-
-        <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-          TrustLayer automatically verifies your client has sufficient funds via secure bank
-          connections — and alerts you in real-time if that changes.
-        </p>
-
-        <div className="flex items-center justify-center gap-4">
-          <Link
-            href="/register"
-            className="px-8 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}>
-            Start Free →
-          </Link>
-          <Link
-            href="/login"
-            className="px-8 py-4 rounded-xl font-semibold text-slate-300 border border-white/10 hover:border-white/20 transition-all duration-200">
-            Sign In
-          </Link>
-        </div>
-      </div>
-
-      {/* Features grid */}
-      <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
-        {[
-          {
-            icon: '🔒',
-            title: 'Bank-Grade Security',
-            description: 'AES-256-GCM encrypted token storage. We never custody your money.',
-          },
-          {
-            icon: '⚡',
-            title: 'Real-Time Alerts',
-            description: 'Get notified instantly via email or webhook when funds drop below threshold.',
-          },
-          {
-            icon: '🌍',
-            title: 'Global Coverage',
-            description: 'US via Plaid. EU/UK via TrueLayer. Australia via Basiq. Expanding.',
-          },
-        ].map((feature) => (
-          <div key={feature.title} className="glass-card p-6">
-            <div className="text-3xl mb-4">{feature.icon}</div>
-            <h3 className="text-white font-semibold text-lg mb-2">{feature.title}</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
+    <div className="min-h-screen bg-white">
+      {/* Navbar */}
+      <nav className="absolute top-0 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md z-50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl leading-none">T</span>
+            </div>
+            <span className="font-bold text-xl text-slate-900 tracking-tight">TrustLayer</span>
           </div>
-        ))}
-      </div>
-    </main>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+              Log in
+            </Link>
+            <Link
+              href="/register"
+              className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg shadow-sm hover:bg-primary/90 transition-all"
+            >
+              Sign up
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto text-center mt-12">
+          <div className="inline-flex items-center gap-2 bg-success/10 border border-success/20 rounded-full px-4 py-1.5 text-sm text-success mb-8 font-medium">
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            100% Escrow Protection via Razorpay
+          </div>
+
+          <h1 className="text-6xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
+            Know You'll Get Paid
+            <br />
+            <span className="text-primary">Before You Start Work</span>
+          </h1>
+
+          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            TrustLayer automatically holds client funds securely in Escrow — 
+            and deposits directly into your bank account the second a milestone is approved.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/register"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-primary text-white text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] transition-transform"
+            >
+              Start Free Trial →
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors"
+            >
+              See how it works
+            </Link>
+          </div>
+        </div>
+
+        {/* Features grid */}
+        <div id="how-it-works" className="mt-32 max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Built for Trust</h2>
+            <p className="text-slate-500">The safest way to do freelance work in India.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: '🛡️',
+                title: 'Money securely held',
+                description: 'Clients deposit milestone funds upfront via Razorpay. We hold it securely until the work is done.',
+              },
+              {
+                icon: '⚡',
+                title: 'Instant Payouts',
+                description: 'Once approved, 99% gets instantly routed straight to your Indian Bank Account via IMPS/NEFT.',
+              },
+              {
+                icon: '🔮',
+                title: 'Zero Uncertainty',
+                description: 'No more chasing invoices. See exactly how much money is sitting safely in escrow before lifting a finger.',
+              },
+            ].map((feature) => (
+              <div key={feature.title} className="glass-card hover:shadow-md transition-shadow p-8 text-left border-slate-100">
+                <div className="text-4xl mb-6 bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center border border-slate-100">{feature.icon}</div>
+                <h3 className="text-slate-900 font-bold text-xl mb-3">{feature.title}</h3>
+                <p className="text-slate-600 leading-relaxed font-medium">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
   )
 }

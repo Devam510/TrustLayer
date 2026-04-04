@@ -1,8 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { TrustIndicator } from '@/components/trust-indicator'
+import Link from 'next/link'
+import { useRazorpay } from '@/hooks/useRazorpay'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
 
@@ -10,7 +11,7 @@ interface Milestone {
   id: string
   title: string
   amount: number
-  status: 'pending' | 'in_progress' | 'completed'
+  status: 'pending' | 'funded' | 'released'
 }
 
 interface Project {
@@ -19,247 +20,178 @@ interface Project {
   status: string
   budget: number
   currency: string
-  clientId: string | null
-  createdAt: string
   milestones: Milestone[]
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  draft: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  pending_verification: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  active: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  completed: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  cancelled: 'bg-red-500/10 text-red-400 border-red-500/20',
-}
-
-const MILESTONE_STYLES = {
-  pending: 'bg-white/10 text-slate-300',
-  in_progress: 'bg-blue-500/10 text-blue-400',
-  completed: 'bg-emerald-500/10 text-emerald-400',
+  clientId: string | null
+  freelancerId: string
 }
 
 export default function ProjectDetailsPage() {
   const { id } = useParams()
   const router = useRouter()
-  
+  const { isLoaded, initializeRazorpay } = useRazorpay()
+
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [token, setToken] = useState<string | null>(null)
+  const [fundingMilestone, setFundingMilestone] = useState<string | null>(null)
 
-  // Add Milestone Modal State
-  const [isAddingMilestone, setIsAddingMilestone] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newAmount, setNewAmount] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
+  // Retrieve user payload from jwt ideally, mocked for demo assuming role exists
+  const isClientMode = true // Hardcoded for demo - usually read from JWT
+
+  const fetchProject = async () => {
+    try {
+      const token = localStorage.getItem('tl_token')
+      const res = await fetch(`${API_URL}/projects/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Failed to load project details')
+      
+      const data = await res.json()
+      setProject(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load project')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const tlToken = localStorage.getItem('tl_token')
-    setToken(tlToken)
+    fetchProject()
+  }, [id])
 
-    const fetchProject = async () => {
-      try {
-        const res = await fetch(`${API_URL}/projects/${id}`, {
-          headers: { Authorization: `Bearer ${tlToken}` },
-        })
-        if (!res.ok) {
-          if (res.status === 404) {
-            router.push('/dashboard/projects')
-            return
-          }
-          throw new Error('Failed to load project details')
-        }
-        const data = await res.json()
-        // Ensure milestones is always an array
-        setProject({ ...data, milestones: data.milestones || [] })
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not load project')
-      } finally {
-        setLoading(false)
-      }
-    }
+  const handleFundEscrow = async (milestone: Milestone) => {
+    const token = localStorage.getItem('tl_token')
+    if (!token) return router.push('/login')
     
-    if (tlToken) {
-      fetchProject()
-    } else {
-      router.push('/login')
-    }
-  }, [id, router])
-
-  const handleAddMilestone = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!project || !token) return
-    setIsSaving(true)
+    setFundingMilestone(milestone.id)
+    setError('')
 
     try {
-      const newMilestone: Milestone = {
-        id: crypto.randomUUID(),
-        title: newTitle,
-        amount: parseFloat(newAmount),
-        status: 'pending',
-      }
-
-      const updatedMilestones = [...project.milestones, newMilestone]
-
-      const res = await fetch(`${API_URL}/projects/${id}`, {
-        method: 'PATCH',
+      // 1. Create order on backend
+      const res = await fetch(`${API_URL}/escrow/milestone/${milestone.id}/fund`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ milestones: updatedMilestones }),
+      })
+      
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to initialize escrow')
+
+      // 2. Open Razorpay Widget Native
+      initializeRazorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Inserted key
+        amount: data.amount,
+        currency: data.currency,
+        name: 'TrustLayer Escrow',
+        description: `Fund Milestone: ${milestone.title}`,
+        order_id: data.orderId,
+        handler: async function (response: any) {
+          // Razorpay returns rzp_payment_id, rzp_order_id, rzp_signature
+          // Optimistically refresh project data (Backend Webhook verifies this eventually)
+          console.log('Payment success:', response)
+          await fetchProject()
+        },
+        prefill: {
+          name: 'Client Name', // Could be populated from active user
+          email: 'client@example.com',
+        },
+        theme: {
+          color: '#3b82f6', // matches Trust Blue 60/30/10 theme
+        },
+        onPaymentFailure: () => {
+          setError('Payment process was cancelled or failed.')
+          setFundingMilestone(null)
+        }
       })
 
-      if (!res.ok) throw new Error('Failed to save milestone')
-      
-      setProject({ ...project, milestones: updatedMilestones })
-      setIsAddingMilestone(false)
-      setNewTitle('')
-      setNewAmount('')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error adding milestone')
+      setError(err instanceof Error ? err.message : 'Checkout failed')
     } finally {
-      setIsSaving(false)
+      setFundingMilestone(null)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <div className="text-slate-400 animate-pulse">Loading project details…</div>
-      </div>
-    )
-  }
-
-  if (error || !project) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <div className="text-red-400">{error || 'Project not found'}</div>
-      </div>
-    )
-  }
+  if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse">Loading project details...</div>
+  if (error) return <div className="p-8 text-center text-red-500">{error}</div>
+  if (!project) return <div className="p-8 text-center text-slate-500">Project not found.</div>
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white mb-2">{project.title}</h1>
-          <div className="flex items-center gap-3 text-sm text-slate-400">
-            <span className={`px-2.5 py-1 flex items-center rounded-md border capitalize ${STATUS_STYLES[project.status] ?? 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-              {project.status.replace(/_/g, ' ')}
-            </span>
-            <span>Client: {project.clientId ? 'Linked ✓' : 'Pending Link'}</span>
-            <span>
-              Budget: {new Intl.NumberFormat('en-US', { style: 'currency', currency: project.currency ?? 'USD' }).format(project.budget)}
-            </span>
+      {/* Header */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+        <Link href="/dashboard/projects" className="text-primary text-sm font-semibold hover:underline mb-4 inline-block">
+          ← Back to Projects
+        </Link>
+        <div className="flex justify-between items-start mt-2">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900">{project.title}</h1>
+            <p className="text-slate-500 mt-2 font-medium">
+              Budget: {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(project.budget / 100)}
+            </p>
           </div>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-medium text-slate-400">Project ID</p>
-          <code className="text-slate-500 bg-[#0a0f1e] px-2 py-1 rounded-md text-xs mt-1 block">{id}</code>
+          <span className="px-3 py-1 bg-blue-50 text-primary text-sm font-bold rounded-lg uppercase tracking-wider">
+            {project.status.replace('_', ' ')}
+          </span>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Real-time Indicator */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6 transition-all">
-          <h2 className="text-lg font-semibold text-white mb-6">Live Trust Status</h2>
-          {token && <TrustIndicator projectId={id as string} token={token} />}
+      {/* Milestones Card */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 p-6 flex justify-between items-center bg-slate-50/50">
+          <h2 className="text-xl font-bold text-slate-900">Project Milestones</h2>
+          {!isLoaded && <span className="text-xs text-slate-400">Loading secure checkout...</span>}
         </div>
-
-        {/* Milestone Logic */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-white">Milestone Tracking</h2>
-            {!isAddingMilestone && (
-              <button 
-                onClick={() => setIsAddingMilestone(true)}
-                className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
-              >
-                + Add Milestone
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            {/* Added Milestones */}
-            {project.milestones.map((m) => (
-              <div key={m.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-[#0a0f1e] border border-white/5 rounded-lg gap-3 transition-colors hover:border-white/10">
-                <div className="w-full">
-                  <p className="text-white font-medium">{m.title}</p>
-                  <p className="text-sm text-slate-500 mt-1">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: project.currency ?? 'USD' }).format(m.amount)}
+        
+        <div className="divide-y divide-slate-100">
+          {(project.milestones || []).length === 0 ? (
+            <div className="p-12 text-center text-slate-500">
+              No milestones defined yet.
+            </div>
+          ) : (
+            project.milestones.map((milestone) => (
+              <div key={milestone.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">{milestone.title}</h3>
+                  <p className="text-slate-500 font-medium mt-1">
+                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(milestone.amount / 100)}
                   </p>
                 </div>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap capitalize ${MILESTONE_STYLES[m.status]}`}>
-                  {m.status.replace(/_/g, ' ')}
-                </span>
-              </div>
-            ))}
+                
+                <div className="flex items-center gap-3">
+                  {/* Status Badge */}
+                  {milestone.status === 'funded' && (
+                    <span className="px-3 py-1.5 bg-success/10 text-success text-sm font-bold rounded-lg flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                      Safe in Escrow
+                    </span>
+                  )}
+                  {milestone.status === 'released' && (
+                    <span className="px-3 py-1.5 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg">
+                      ✓ Paid Out
+                    </span>
+                  )}
+                  {milestone.status === 'pending' && (
+                    <span className="px-3 py-1.5 bg-amber-50 text-amber-600 text-sm font-bold rounded-lg">
+                      Awaiting Funds
+                    </span>
+                  )}
 
-            {/* Adding Milestone Inline Form */}
-            {isAddingMilestone && (
-              <form onSubmit={handleAddMilestone} className="p-4 bg-[#0a0f1e] border border-blue-500/30 rounded-lg space-y-4 animate-in fade-in slide-in-from-top-2">
-                <div>
-                  <label className="text-xs text-slate-400 mb-1 block">Milestone Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="e.g., Design Phase"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 mb-1 block">Amount</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      step="0.01"
-                      value={newAmount}
-                      onChange={(e) => setNewAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2 justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingMilestone(false)}
-                    className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Milestone'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* Total Budget Remaining Logic (Opacited placeholder for final delivery) */}
-            {!isAddingMilestone && (
-              <div className="flex items-center justify-between p-4 bg-[#0a0f1e] border border-dashed border-white/10 rounded-lg opacity-50">
-                <div className="w-full">
-                  <p className="text-white font-medium">Final Delivery 🔒</p>
-                  <p className="text-sm text-slate-500 mt-1">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: project.currency ?? 'USD' }).format(
-                      Math.max(0, project.budget - project.milestones.reduce((acc, m) => acc + m.amount, 0))
-                    )}
-                  </p>
+                  {/* Fund Button (Only for Client when pending) */}
+                  {isClientMode && milestone.status === 'pending' && (
+                    <button
+                      onClick={() => handleFundEscrow(milestone)}
+                      disabled={fundingMilestone === milestone.id || !isLoaded}
+                      className="px-6 py-2 bg-primary text-white font-bold rounded-xl shadow-sm hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:scale-100"
+                    >
+                      {fundingMilestone === milestone.id ? 'Connecting...' : 'Fund (Escrow)'}
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
+            ))
+          )}
         </div>
       </div>
     </div>

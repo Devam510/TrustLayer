@@ -4,52 +4,66 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-:root {
-  /* TrustLayer design tokens */
-  --color-primary: 220 91% 56%;
-  --color-primary-foreground: 0 0% 100%;
-  --color-success: 142 76% 36%;
-  --color-warning: 38 92% 50%;
-  --color-danger: 0 72% 51%;
-  --color-muted: 215 20% 65%;
-  --radius: 0.625rem;
+@layer base {
+  :root {
+    /* 60% Whites and Grays (Base Structure) */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    
+    /* 30% Trust Blue (Primary accents, buttons, highlights, trust indicators) */
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    /* Soft blue for secondary elements without taking focus */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    /* Muteds / Borders */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    
+    /* 10% Success Green (Money, Funding, Safe status) */
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 355.7 100% 97.3%;
+    
+    /* Danger / Warnings */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --radius: 0.75rem;
+  }
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+  }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  font-family: 'Inter', sans-serif;
-  background: #0a0f1e;
-  color: #e2e8f0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Trust indicator status colors */
+/* Trust indicator specific typography/utilities */
 .trust-safe {
-  color: hsl(142 76% 46%);
+  color: hsl(var(--success));
 }
 .trust-at-risk {
-  color: hsl(38 92% 50%);
+  color: hsl(38 92% 50%); /* Amber for risk */
 }
 .trust-stopped {
-  color: hsl(0 72% 51%);
+  color: hsl(var(--destructive));
 }
 
-/* Glassmorphism card */
+/* Base structural classes */
 .glass-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius);
-  backdrop-filter: blur(12px);
+  @apply bg-white border border-gray-100 shadow-sm rounded-xl;
 }
